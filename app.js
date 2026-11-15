@@ -131,7 +131,7 @@
   function step(app){
     var q=Q[idx], total=Q.length-1, a=cur.a;
     var perg=Q.filter(function(x){return x.k&&!x.priv&&x.id!=='contato'&&vis(x)}), nq=perg.length;
-    var lab={res:'Resultado para mostrar à pessoa',thanks:'Fim da conversa',end:'Salvar'}[q.type]||(q.priv?'Só para você':(q.id==='contato'?'Para finalizar':'Pergunta '+(perg.indexOf(q)+1)+' de '+nq));
+    var lab={res:'Diagnóstico da academia',thanks:'Fim da conversa',end:'Salvar'}[q.type]||(q.priv?'Só para você':(q.id==='contato'?'Para finalizar':'Pergunta '+(perg.indexOf(q)+1)+' de '+nq));
     app.appendChild(el('<div class="top"><div class="brand">Entrevista<small>'+lab+'</small></div><button class="pill" id="sair" style="cursor:pointer">'+(cur.test?'Sair':'Pausar')+'</button></div>'));
     app.querySelector('#sair').onclick=function(){
       if(!cur.test&&Object.keys(a).length){saveDraft();toast('Entrevista pausada. Retome na tela inicial')}
@@ -185,7 +185,6 @@
         var cs=el('<label class="consent"><input type="checkbox" '+(a.consent?'checked':'')+'><span>A pessoa autorizou o Controle Fitness a guardar estes dados e a enviar o diagnóstico e continuar a conversa por WhatsApp e e-mail.</span></label>');
         cs.querySelector('input').onchange=function(e){setA('consent',e.target.checked)};
         c.appendChild(cs);
-        c.appendChild(el('<p class="muted" style="margin-top:8px">Se a pessoa não quiser, deixe em branco e toque em Continuar. A entrevista é salva do mesmo jeito.</p>'));
       }
     } else if(q.type==='text'){
       var f1=el('<div><input class="t" value="'+esc(a[q.id]||'')+'" placeholder="'+q.ph+'" style="margin-top:18px"></div>');
