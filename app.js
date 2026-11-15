@@ -28,9 +28,15 @@
     {id:'evasao',k:'Evasão',t:'Sabe quantos alunos perdeu no mês passado?',type:'one',o:['Sabe o número exato','Tem uma ideia','Não sabe'],extra:{id:'evasaoN',l:'Quantos, mais ou menos?',ph:'Ex.: 15',show:function(a){return a.evasao&&a.evasao!=='Não sabe'}}},
     {id:'origem',k:'Evasão',t:'Sabe de onde vêm os alunos?',hint:'Indicação, promoção, anúncio ou evento.',type:'one',o:['Sabe para cada aluno','Sabe mais ou menos','Não sabe'],extra:{id:'canais',type:'multi',l:'De onde vem a maior parte? Pode marcar mais de uma.',o:['Indicação de alunos','Instagram','Google','Passou na frente da academia','Panfletagem','Influenciador ou parceiro local','Eventos','Gympass (Wellhub)','TotalPass','Promoção ou campanha de preço'],outro:{id:'canaisOutro',l:'Outro canal',ph:'Ex.: rádio, carro de som, convênio com empresa'},show:function(a){return a.origem==='Sabe para cada aluno'||a.origem==='Sabe mais ou menos'}}},
     {id:'percebe',k:'Evasão',t:'Quando um aluno para de vir, quando vocês percebem?',type:'one',o:['Na mesma semana','No fim do mês','Só quando cancela ou para de pagar']},
+    {id:'motivo',k:'Evasão',t:'Pelo que vocês sabem, por que os alunos saem?',hint:'Pode marcar mais de uma.',type:'multi',o:['Preço','Mudou de horário ou rotina','Não viu resultado','Foi para outra academia','Lesão ou saúde','Mudou de bairro ou cidade','Não sabe']},
     {id:'balcao',k:'Pagamento',t:'Quantos alunos pagam mês a mês no balcão, por PIX ou dinheiro?',type:'one',o:['Quase todos','Mais ou menos metade','Poucos','Quase nenhum','Não sabe']},
     {id:'aperta',k:'Pagamento',t:'Quando o caixa aperta, o que vocês fazem?',hint:'Pode marcar mais de uma.',type:'multi',o:['Promoção ou desconto','Cobram quem está devendo','Ação de indicação','Corta custos','Nada específico']},
+    // Bloco de marketing (Girassol Digital): só para quem decide (dono/gerente) ou cargo não informado.
+    {id:'mkQuem',k:'Marketing',when:decide,t:'Quem cuida do Instagram e dos anúncios da academia?',type:'one',o:['O próprio dono','Um funcionário ou professor','Agência ou freelancer','Ninguém cuida hoje']},
+    {id:'mkInvest',k:'Marketing',when:decide,t:'Quanto investem por mês em anúncios pagos?',hint:'Instagram, Facebook, Google.',type:'one',o:['Nada','Até R$ 300','De R$ 301 a R$ 1.000','Mais de R$ 1.000','Não sabe']},
+    {id:'mkDor',k:'Marketing',when:decide,t:'No marketing, o que é mais difícil hoje?',hint:'Pode marcar mais de uma.',type:'multi',o:['Atrair gente nova','Transformar seguidor em matrícula','Postar com constância','Saber se o anúncio deu resultado','Não tem tempo para isso']},
     {id:'medo',k:'Trocar de sistema',t:'Se fossem trocar de sistema, o que mais preocuparia?',hint:'Pode marcar mais de uma.',type:'multi',o:['Perder o histórico dos alunos','Bagunçar a recepção','A equipe não se adaptar','Pagar e o sistema não entregar','Contrato com o sistema atual','Não pensa em trocar']},
+    {id:'trocaria',k:'Trocar de sistema',t:'O que faria vocês trocarem de sistema amanhã?',hint:'Pode marcar mais de uma.',type:'multi',o:['Pagar menos','Saber antes quem vai sair','Cobrança automática dos alunos','Migrar sem perder o histórico','Suporte que responde rápido','Nada, estão satisfeitos'],extra:{id:'trocariaOutro',l:'Outro motivo, nas palavras da pessoa',ph:'Ex.: relatório simples no celular',show:function(){return true}}},
     {id:'res',type:'res'},
     {id:'contato',k:'Para finalizar',t:'Posso te mandar o diagnóstico completo da sua academia?',hint:'Eu envio pelo WhatsApp ou pelo e-mail, e a gente continua a conversa por lá.',type:'form',fields:[
       {id:'whats',l:'WhatsApp',ph:'(81) 9 0000-0000',tp:'tel'},
@@ -56,6 +62,7 @@
   function clearDraft(){try{localStorage.removeItem(DRAFT)}catch(e){}}
   function setA(k,v){cur.a[k]=v;saveDraft()}
 
+  function decide(a){return !a.cargo||a.cargo==='Dono ou sócio'||a.cargo==='Gerente'}
   function perfil(a){
     if(a.evasao==='Não sabe'||a.controle==='Planilha ou caderno')return 'No escuro';
     if(a.evasao==='Sabe o número exato'&&a.percebe==='Na mesma semana')return 'Já mede, quer agir';
@@ -130,8 +137,9 @@
   }
 
   function step(app){
-    var q=Q[idx], total=Q.length-1, a=cur.a, nq=Q.filter(function(x){return x.k&&!x.priv&&x.id!=='contato'}).length;
-    var lab={res:'Resultado para mostrar à pessoa',thanks:'Fim da conversa',end:'Salvar'}[q.type]||(q.priv?'Só para você':(q.id==='contato'?'Para finalizar':'Pergunta '+(idx+1)+' de '+nq));
+    var q=Q[idx], total=Q.length-1, a=cur.a;
+    var perg=Q.filter(function(x){return x.k&&!x.priv&&x.id!=='contato'&&vis(x)}), nq=perg.length;
+    var lab={res:'Resultado para mostrar à pessoa',thanks:'Fim da conversa',end:'Salvar'}[q.type]||(q.priv?'Só para você':(q.id==='contato'?'Para finalizar':'Pergunta '+(perg.indexOf(q)+1)+' de '+nq));
     app.appendChild(el('<div class="top"><div class="brand">Entrevista<small>'+lab+'</small></div><button class="pill" id="sair" style="cursor:pointer">'+(cur.test?'Sair':'Pausar')+'</button></div>'));
     app.querySelector('#sair').onclick=function(){
       if(!cur.test&&Object.keys(a).length){saveDraft();toast('Entrevista pausada. Retome na tela inicial')}
@@ -199,14 +207,17 @@
     app.appendChild(c);
     var bar=el('<div class="bar"><div class="in row"><button class="btn s" id="back" style="flex:0 0 34%">Voltar</button><button class="btn p" id="nx">'+((q.type==='one'||q.type==='multi')&&!(a[q.id]&&a[q.id].length)?'Pular':'Continuar')+'</button></div></div>');
     bar.querySelector('#back').disabled=idx===0;
-    bar.querySelector('#back').onclick=function(){if(idx>0){idx--;render();window.scrollTo(0,0)}};
+    bar.querySelector('#back').onclick=back;
     bar.querySelector('#nx').onclick=function(){
       if(q.consent&&(a.whats||a.email)&&!a.consent){toast('Marque a autorização antes de salvar o contato');return}
       next();
     };
     document.body.appendChild(bar);
   }
-  function next(){idx++;render();window.scrollTo(0,0)}
+  // Perguntas condicionais (when) são puladas para frente e para trás.
+  function vis(q){return !q.when||q.when(cur.a)}
+  function next(){idx++;while(idx<Q.length-1&&!vis(Q[idx]))idx++;render();window.scrollTo(0,0)}
+  function back(){if(idx<=0)return;idx--;while(idx>0&&!vis(Q[idx]))idx--;render();window.scrollTo(0,0)}
   function start(test){cur={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),inicio:new Date().toISOString(),a:{},test:!!test};idx=0;mode='step';render();window.scrollTo(0,0)}
 
   function result(app){
@@ -234,6 +245,7 @@
       if(cur.test){cur=null;toast('Teste encerrado. Nada foi salvo');mode='home';render();window.scrollTo(0,0);return}
       cur.fim=new Date().toISOString();
       if(!a.consent){delete a.whats;delete a.email} else if(!cur.consentEm){cur.consentEm=cur.fim}
+      Q.forEach(function(q){if(!vis(q))delete a[q.id]}); // ex.: mudou o cargo depois de responder o marketing
       delete cur.test;
       var i=all.findIndex(function(e){return e.id===cur.id}); if(i>-1)all[i]=cur; else all.push(cur);
       if(!persist())return; // memória cheia: mantém o rascunho e a tela
@@ -243,7 +255,7 @@
   }
   function navBar(label,fn){
     var bar=el('<div class="bar"><div class="in row"><button class="btn s" id="back" style="flex:0 0 34%">Voltar</button><button class="btn p" id="sv">'+label+'</button></div></div>');
-    bar.querySelector('#back').onclick=function(){idx--;render();window.scrollTo(0,0)};
+    bar.querySelector('#back').onclick=back;
     bar.querySelector('#sv').onclick=fn;
     document.body.appendChild(bar);
   }
