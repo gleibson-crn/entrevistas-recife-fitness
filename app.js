@@ -48,6 +48,7 @@
   ];
 
   var mode='home', idx=0, cur=null;
+  var THANKS_MS=10000; // botões ocultos na tela de obrigado
   function el(h){var d=document.createElement('div');d.innerHTML=h;return d.firstElementChild}
   var tt0;
   function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt0);tt0=setTimeout(function(){t.classList.remove('on')},2400)}
@@ -108,15 +109,6 @@
     var tt=el('<div style="margin-top:8px"><button class="btn g">Fazer uma entrevista de teste (não conta e não fica salva)</button></div>');
     tt.querySelector('button').onclick=function(){start(true)};
     app.appendChild(tt);
-    app.appendChild(el('<details class="card tips"><summary>Como abordar no estande</summary><ol>'+
-      '<li>Comece pela pessoa, não pelo produto: "Você é o dono ou trabalha na gestão da academia?"</li>'+
-      '<li>Peça poucos minutos com uma razão honesta: "Estou fazendo uma pesquisa rápida com donos de academia sobre evasão de alunos. São 3 minutos, e no fim eu te mostro um número sobre a sua academia."</li>'+
-      '<li>Segure o celular você mesmo e vá tocando nas respostas enquanto conversa, olhando para a pessoa.</li>'+
-      '<li>Não venda durante as perguntas. Se ela perguntar o que você faz, responda em uma frase e diga que conta no fim.</li>'+
-      '<li>Quando ela soltar uma frase forte, anote exatamente como falou.</li>'+
-      '<li>No resultado, mostre o perfil e quanto cada aluno que sai deixa de pagar em um ano. É aí que você conta do Controle Fitness.</li>'+
-      '<li>Só peça o contato com a autorização dela, marcando a caixa de consentimento.</li>'+
-      '<li>Prefira os horários mais calmos e os estandes de equipamentos, onde os donos param mais tempo.</li></ol></details>'));
     if(n){
       var l=el('<div class="card list"><h3 style="font-size:16px;margin-bottom:6px">Feitas até agora</h3></div>');
       all.slice().reverse().forEach(function(e){
@@ -235,8 +227,11 @@
   }
   function thanks(app){
     var nm=cur.a.nome?', '+esc(cur.a.nome.split(' ')[0]):'';
-    app.appendChild(el('<div class="card res" style="text-align:center;padding:36px 20px"><div class="big" style="font-size:30px">Obrigado pela sua colaboração'+nm+'!</div><p style="margin-top:14px">'+(cur.a.consent?'O diagnóstico completo chega no seu WhatsApp ou e-mail.':'Foi ótimo conversar com você.')+'</p><p class="muted" style="margin-top:22px">Mostre esta tela para a pessoa. Depois que ela sair, toque em continuar.</p></div>'));
-    navBar('A pessoa já saiu',function(){next()});
+    app.appendChild(el('<div class="card res" style="text-align:center;padding:36px 20px"><div class="big" style="font-size:30px">Obrigado pela sua colaboração'+nm+'!</div><p style="margin-top:14px">'+(cur.a.consent?'O diagnóstico completo chega no seu WhatsApp ou e-mail.':'Foi ótimo conversar com você.')+'</p></div>'));
+    // Tela limpa para o entrevistado: os botões só aparecem depois de 10 s (tempo da despedida).
+    navBar('Continuar',function(){next()});
+    var bar=document.querySelector('.bar'); bar.style.visibility='hidden';
+    setTimeout(function(){bar.style.visibility=''},THANKS_MS);
   }
   function finish(app){
     var a=cur.a;
