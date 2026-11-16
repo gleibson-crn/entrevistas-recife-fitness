@@ -1,7 +1,7 @@
 // Service worker: cache-first de todos os arquivos do app (funciona offline).
 // AO PUBLICAR NOVA VERSÃO: incremente VERSION — é o que dispara a atualização nos celulares.
 // As entrevistas ficam no localStorage do aparelho e NÃO são afetadas por atualizações.
-const VERSION = 'v4';
+const VERSION = 'v5';
 const CACHE = `entrevistas-${VERSION}`;
 const ASSETS = [
   './',

@@ -9,36 +9,55 @@
   function persist(){return save(KEY,all)}
   if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(function(){})}
 
+  var TEM='Sim, já tem academia', ABRE='Ainda não, vai abrir uma';
   var Q=[
     {id:'quem',k:'Quem está falando',t:'Com quem você está conversando?',type:'form',fields:[
       {id:'nome',l:'Nome da pessoa',ph:'Como ela se apresentou'},
-      {id:'academia',l:'Nome da academia',ph:'Academia'},
+      {id:'academia',l:'Nome da academia (ou do projeto)',ph:'Academia'},
       {id:'instagram',l:'Instagram da academia (da principal, se tiver mais de uma)',ph:'@academia'},
       {id:'local',l:'Cidade e bairro',ph:'Ex.: Recife, Casa Amarela'}]},
-    {id:'cargo',k:'Quem está falando',t:'Qual é o papel dela na academia?',type:'one',o:['Dono ou sócio','Gerente','Recepção ou financeiro','Professor','Outro']},
-    {id:'rede',k:'Tamanho',t:'A academia faz parte de uma rede ou franquia?',type:'one',o:['Não, é independente','Sim, é de uma rede ou franquia']},
-    {id:'unidades',k:'Tamanho',t:'Quantas unidades a academia tem?',type:'one',o:['1','2','3','4 ou mais']},
-    {id:'alunos',k:'Tamanho',t:'Quantos alunos ativos a academia tem hoje?',hint:'Somando todas as unidades.',type:'one',o:['Até 150','De 151 a 200','De 201 a 600','De 601 a 1.000','Mais de 1.000','Não sabe']},
-    {id:'valores',k:'Tamanho',t:'Quanto custam os planos da academia?',hint:'Em reais por mês. Preencha o que a pessoa souber.',type:'form',fields:[
+    {id:'situacao',k:'Quem está falando',t:'Já tem academia funcionando?',type:'one',o:[TEM,ABRE]},
+
+    // ----- Caminho de quem AINDA VAI ABRIR (veio à feira cotar fornecedores) -----
+    {id:'fase',k:'O projeto',when:abre,t:'Em que fase está o projeto?',type:'one',o:['Avaliando se vale a pena','Procurando o ponto','Já tem o ponto','Em obra ou montagem']},
+    {id:'quando',k:'O projeto',when:abre,t:'Quando pretende abrir?',type:'one',o:['Em até 3 meses','De 3 a 6 meses','De 6 meses a 1 ano','Mais de 1 ano ou sem data']},
+    {id:'tipo',k:'O projeto',when:abre,t:'Que tipo de academia vai ser?',hint:'Pode marcar mais de uma.',type:'multi',o:['Musculação','Funcional ou cross','Estúdio (pilates, dança, lutas)','Academia completa','Franquia']},
+    {id:'alunosMeta',k:'O projeto',when:abre,t:'Quantos alunos espera ter no primeiro ano?',type:'one',o:['Até 150','De 151 a 200','De 201 a 600','De 601 a 1.000','Mais de 1.000','Não sabe']},
+    {id:'valoresPlan',k:'O projeto',when:abre,t:'Quanto pretende cobrar por mês?',hint:'Em reais. Se ainda não definiu, deixe em branco.',type:'form',fields:[
+      {id:'ticketPlan',l:'Mensalidade prevista',ph:'Ex.: 99,90',num:true}]},
+    {id:'sistemaPlan',k:'Gestão',when:abre,t:'Já escolheu o sistema de gestão?',type:'one',o:['Ainda não pensou nisso','Está pesquisando ou cotando','Já escolheu um'],extra:{id:'sistemaCotado',l:'Quais está olhando ou escolheu?',ph:'Ex.: EVO, Next Fit',show:function(a){return a.sistemaPlan&&a.sistemaPlan!=='Ainda não pensou nisso'}}},
+    {id:'pesa',k:'Gestão',when:abre,t:'O que mais pesa na escolha do sistema?',hint:'Pode marcar mais de uma.',type:'multi',o:['Preço','Fácil de usar','Cobrança automática dos alunos','Relatórios para tomar decisão','Suporte que responde rápido','Indicação de outro dono']},
+    {id:'preocupa',k:'Abertura',when:abre,t:'O que mais preocupa na abertura?',hint:'Pode marcar mais de uma.',type:'multi',o:['Conseguir os primeiros alunos','Manter os alunos depois','Fluxo de caixa','Montar a equipe','Escolher equipamentos','Burocracia e licenças']},
+    // Marketing de inauguração (Girassol Digital)
+    {id:'mkAtrair',k:'Marketing',when:abre,t:'Como pretende atrair os primeiros alunos?',hint:'Pode marcar mais de uma.',type:'multi',o:['Instagram','Anúncios pagos','Pré-venda com desconto de inauguração','Panfletagem','Parcerias no bairro','Gympass ou TotalPass','Ainda não pensou nisso']},
+    {id:'mkAjuda',k:'Marketing',when:abre,t:'Quem vai cuidar da divulgação?',type:'one',o:['Vai fazer sozinho','Um funcionário','Agência ou freelancer','Ainda não sabe']},
+    {id:'mkVerba',k:'Marketing',when:abre,t:'Quanto pretende investir em divulgação na inauguração?',type:'one',o:['Nada','Até R$ 1.000','De R$ 1.001 a R$ 3.000','Mais de R$ 3.000','Não sabe']},
+
+    // ----- Caminho de quem JÁ TEM academia -----
+    {id:'cargo',k:'Quem está falando',when:tem,t:'Qual é o papel dela na academia?',type:'one',o:['Dono ou sócio','Gerente','Recepção ou financeiro','Professor','Outro']},
+    {id:'rede',k:'Tamanho',when:tem,t:'A academia faz parte de uma rede ou franquia?',type:'one',o:['Não, é independente','Sim, é de uma rede ou franquia']},
+    {id:'unidades',k:'Tamanho',when:tem,t:'Quantas unidades a academia tem?',type:'one',o:['1','2','3','4 ou mais']},
+    {id:'alunos',k:'Tamanho',when:tem,t:'Quantos alunos ativos a academia tem hoje?',hint:'Somando todas as unidades.',type:'one',o:['Até 150','De 151 a 200','De 201 a 600','De 601 a 1.000','Mais de 1.000','Não sabe']},
+    {id:'valores',k:'Tamanho',when:tem,t:'Quanto custam os planos da academia?',hint:'Em reais por mês. Preencha o que a pessoa souber.',type:'form',fields:[
       {id:'planoMin',l:'Plano mais barato',ph:'Ex.: 79,90',num:true},
       {id:'planoMax',l:'Plano mais caro',ph:'Ex.: 149,90',num:true},
       {id:'ticket',l:'Ticket médio, se souber',ph:'Ex.: 99,90',num:true}]},
-    {id:'controle',k:'Como funciona hoje',t:'Como vocês controlam alunos e pagamentos?',type:'one',o:['Sistema de gestão','Planilha ou caderno','Os dois juntos'],extra:{id:'sistema',l:'Qual sistema?',ph:'Ex.: EVO, Next Fit, MU',show:function(a){return a.controle!=='Planilha ou caderno'}}},
-    {id:'custo',k:'Como funciona hoje',t:'Quanto pagam hoje pelo sistema, somando tudo?',hint:'Assinatura, taxas e cobrança por movimentação. Se não souber, deixe em branco.',type:'text',ph:'Ex.: R$ 300 + taxas, uns R$ 800'},
-    {id:'evasao',k:'Evasão',t:'Sabe quantos alunos perdeu no mês passado?',type:'one',o:['Sabe o número exato','Tem uma ideia','Não sabe'],extra:{id:'evasaoN',l:'Quantos, mais ou menos?',ph:'Ex.: 15',show:function(a){return a.evasao&&a.evasao!=='Não sabe'}}},
-    {id:'origem',k:'Evasão',t:'Sabe de onde vêm os alunos?',hint:'Indicação, promoção, anúncio ou evento.',type:'one',o:['Sabe para cada aluno','Sabe mais ou menos','Não sabe'],extra:{id:'canais',type:'multi',l:'De onde vem a maior parte? Pode marcar mais de uma.',o:['Indicação de alunos','Instagram','Google','Passou na frente da academia','Panfletagem','Influenciador ou parceiro local','Eventos','Gympass (Wellhub)','TotalPass','Promoção ou campanha de preço'],outro:{id:'canaisOutro',l:'Outro canal',ph:'Ex.: rádio, carro de som, convênio com empresa'},show:function(a){return a.origem==='Sabe para cada aluno'||a.origem==='Sabe mais ou menos'}}},
-    {id:'percebe',k:'Evasão',t:'Quando um aluno para de vir, quando vocês percebem?',type:'one',o:['Na mesma semana','No fim do mês','Só quando cancela ou para de pagar']},
-    {id:'motivo',k:'Evasão',t:'Pelo que vocês sabem, por que os alunos saem?',hint:'Pode marcar mais de uma.',type:'multi',o:['Preço','Mudou de horário ou rotina','Não viu resultado','Foi para outra academia','Lesão ou saúde','Mudou de bairro ou cidade','Não sabe']},
-    {id:'balcao',k:'Pagamento',t:'Quantos alunos pagam mês a mês no balcão, por PIX ou dinheiro?',type:'one',o:['Quase todos','Mais ou menos metade','Poucos','Quase nenhum','Não sabe']},
-    {id:'aperta',k:'Pagamento',t:'Quando o caixa aperta, o que vocês fazem?',hint:'Pode marcar mais de uma.',type:'multi',o:['Promoção ou desconto','Cobram quem está devendo','Ação de indicação','Corta custos','Nada específico']},
+    {id:'controle',k:'Como funciona hoje',when:tem,t:'Como vocês controlam alunos e pagamentos?',type:'one',o:['Sistema de gestão','Planilha ou caderno','Os dois juntos'],extra:{id:'sistema',l:'Qual sistema?',ph:'Ex.: EVO, Next Fit, MU',show:function(a){return a.controle!=='Planilha ou caderno'}}},
+    {id:'custo',k:'Como funciona hoje',when:tem,t:'Quanto pagam hoje pelo sistema, somando tudo?',hint:'Assinatura, taxas e cobrança por movimentação. Se não souber, deixe em branco.',type:'text',ph:'Ex.: R$ 300 + taxas, uns R$ 800'},
+    {id:'evasao',k:'Evasão',when:tem,t:'Sabe quantos alunos perdeu no mês passado?',type:'one',o:['Sabe o número exato','Tem uma ideia','Não sabe'],extra:{id:'evasaoN',l:'Quantos, mais ou menos?',ph:'Ex.: 15',show:function(a){return a.evasao&&a.evasao!=='Não sabe'}}},
+    {id:'origem',k:'Evasão',when:tem,t:'Sabe de onde vêm os alunos?',hint:'Indicação, promoção, anúncio ou evento.',type:'one',o:['Sabe para cada aluno','Sabe mais ou menos','Não sabe'],extra:{id:'canais',type:'multi',l:'De onde vem a maior parte? Pode marcar mais de uma.',o:['Indicação de alunos','Instagram','Google','Passou na frente da academia','Panfletagem','Influenciador ou parceiro local','Eventos','Gympass (Wellhub)','TotalPass','Promoção ou campanha de preço'],outro:{id:'canaisOutro',l:'Outro canal',ph:'Ex.: rádio, carro de som, convênio com empresa'},show:function(a){return a.origem==='Sabe para cada aluno'||a.origem==='Sabe mais ou menos'}}},
+    {id:'percebe',k:'Evasão',when:tem,t:'Quando um aluno para de vir, quando vocês percebem?',type:'one',o:['Na mesma semana','No fim do mês','Só quando cancela ou para de pagar']},
+    {id:'motivo',k:'Evasão',when:tem,t:'Pelo que vocês sabem, por que os alunos saem?',hint:'Pode marcar mais de uma.',type:'multi',o:['Preço','Mudou de horário ou rotina','Não viu resultado','Foi para outra academia','Lesão ou saúde','Mudou de bairro ou cidade','Não sabe']},
+    {id:'balcao',k:'Pagamento',when:tem,t:'Quantos alunos pagam mês a mês no balcão, por PIX ou dinheiro?',type:'one',o:['Quase todos','Mais ou menos metade','Poucos','Quase nenhum','Não sabe']},
+    {id:'aperta',k:'Pagamento',when:tem,t:'Quando o caixa aperta, o que vocês fazem?',hint:'Pode marcar mais de uma.',type:'multi',o:['Promoção ou desconto','Cobram quem está devendo','Ação de indicação','Corta custos','Nada específico']},
     // Bloco de marketing (Girassol Digital): só para quem decide (dono/gerente) ou cargo não informado.
     {id:'mkQuem',k:'Marketing',when:decide,t:'Quem cuida do Instagram e dos anúncios da academia?',type:'one',o:['O próprio dono','Um funcionário ou professor','Agência ou freelancer','Ninguém cuida hoje']},
     {id:'mkInvest',k:'Marketing',when:decide,t:'Quanto investem por mês em anúncios pagos?',hint:'Instagram, Facebook, Google.',type:'one',o:['Nada','Até R$ 300','De R$ 301 a R$ 1.000','Mais de R$ 1.000','Não sabe']},
     {id:'mkDor',k:'Marketing',when:decide,t:'No marketing, o que é mais difícil hoje?',hint:'Pode marcar mais de uma.',type:'multi',o:['Atrair gente nova','Transformar seguidor em matrícula','Postar com constância','Saber se o anúncio deu resultado','Não tem tempo para isso']},
-    {id:'medo',k:'Trocar de sistema',t:'Se fossem trocar de sistema, o que mais preocuparia?',hint:'Pode marcar mais de uma.',type:'multi',o:['Perder o histórico dos alunos','Bagunçar a recepção','A equipe não se adaptar','Pagar e o sistema não entregar','Contrato com o sistema atual','Não pensa em trocar']},
-    {id:'trocaria',k:'Trocar de sistema',t:'O que faria vocês trocarem de sistema amanhã?',hint:'Pode marcar mais de uma.',type:'multi',o:['Pagar menos','Saber antes quem vai sair','Cobrança automática dos alunos','Migrar sem perder o histórico','Suporte que responde rápido','Nada, estão satisfeitos'],extra:{id:'trocariaOutro',l:'Outro motivo, nas palavras da pessoa',ph:'Ex.: relatório simples no celular',show:function(){return true}}},
+    {id:'medo',k:'Trocar de sistema',when:tem,t:'Se fossem trocar de sistema, o que mais preocuparia?',hint:'Pode marcar mais de uma.',type:'multi',o:['Perder o histórico dos alunos','Bagunçar a recepção','A equipe não se adaptar','Pagar e o sistema não entregar','Contrato com o sistema atual','Não pensa em trocar']},
+    {id:'trocaria',k:'Trocar de sistema',when:tem,t:'O que faria vocês trocarem de sistema amanhã?',hint:'Pode marcar mais de uma.',type:'multi',o:['Pagar menos','Saber antes quem vai sair','Cobrança automática dos alunos','Migrar sem perder o histórico','Suporte que responde rápido','Nada, estão satisfeitos'],extra:{id:'trocariaOutro',l:'Outro motivo, nas palavras da pessoa',ph:'Ex.: relatório simples no celular',show:function(){return true}}},
     {id:'res',type:'res'},
-    {id:'contato',k:'Para finalizar',t:'Posso te mandar o diagnóstico completo da sua academia?',hint:'Eu envio pelo WhatsApp ou pelo e-mail, e a gente continua a conversa por lá.',type:'form',fields:[
+    {id:'contato',k:'Para finalizar',t:'Posso te mandar o diagnóstico completo da sua academia?',tAbre:'Posso te mandar o diagnóstico para o seu projeto de academia?',hint:'Eu envio pelo WhatsApp ou pelo e-mail, e a gente continua a conversa por lá.',type:'form',fields:[
       {id:'whats',l:'WhatsApp',ph:'(81) 9 0000-0000',tp:'tel'},
       {id:'email',l:'E-mail',ph:'nome@academia.com.br',tp:'email'}],consent:true},
     {id:'obrigado',type:'thanks'},
@@ -63,8 +82,13 @@
   function clearDraft(){try{localStorage.removeItem(DRAFT)}catch(e){}}
   function setA(k,v){cur.a[k]=v;saveDraft()}
 
-  function decide(a){return !a.cargo||a.cargo==='Dono ou sócio'||a.cargo==='Gerente'}
+  // Sem resposta em "situacao" = trata como academia existente (compatível com entrevistas antigas).
+  function abre(a){return a.situacao===ABRE}
+  function tem(a){return !abre(a)}
+  function decide(a){return tem(a)&&(!a.cargo||a.cargo==='Dono ou sócio'||a.cargo==='Gerente')}
+  function titulo(q,a){return abre(a)&&q.tAbre?q.tAbre:q.t}
   function perfil(a){
+    if(abre(a))return 'Vai abrir academia';
     if(a.evasao==='Não sabe'||a.controle==='Planilha ou caderno')return 'No escuro';
     if(a.evasao==='Sabe o número exato'&&a.percebe==='Na mesma semana')return 'Já mede, quer agir';
     return 'Com sistema, sem resposta';
@@ -73,7 +97,7 @@
     var m={'Até 150':'Até 200 alunos, R$ 349 por mês','De 151 a 200':'Até 200 alunos, R$ 349 por mês','De 201 a 600':'Até 600 alunos, R$ 499 por mês','De 601 a 1.000':'Até 1.000 alunos, R$ 699 por mês','Mais de 1.000':'Sob medida'};
     if(a.unidades==='4 ou mais')return 'Sob medida';
     if((a.unidades==='2'||a.unidades==='3')&&a.alunos!=='Mais de 1.000')return 'Até 1.000 alunos, matriz e até 2 filiais, R$ 699 por mês';
-    return m[a.alunos]||'A definir';
+    return m[a.alunos||a.alunosMeta]||'A definir';
   }
 
   function render(){
@@ -144,7 +168,7 @@
     if(q.type==='res')return result(app);
     if(q.type==='thanks')return thanks(app);
     if(q.type==='end')return finish(app);
-    var c=el('<div class="step"><div class="k">'+q.k+'</div><h2>'+q.t+'</h2>'+(q.hint?'<p class="hint">'+q.hint+'</p>':'')+'</div>');
+    var c=el('<div class="step"><div class="k">'+q.k+'</div><h2>'+titulo(q,a)+'</h2>'+(q.hint?'<p class="hint">'+q.hint+'</p>':'')+'</div>');
     if(q.type==='one'||q.type==='multi'){
       var box=el('<div class="opts"></div>');
       q.o.forEach(function(o){
@@ -212,14 +236,15 @@
   function start(test){cur={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),inicio:new Date().toISOString(),a:{},test:!!test};idx=0;mode='step';render();window.scrollTo(0,0)}
 
   function result(app){
-    var a=cur.a, p=perfil(a), t=money(a.ticket), mn=money(a.planoMin), m=t||mn;
+    var a=cur.a, p=perfil(a), nova=abre(a), t=money(nova?a.ticketPlan:a.ticket), mn=nova?null:money(a.planoMin), m=t||mn;
     cur.perfil=p; cur.plano=plano(a); saveDraft();
-    var txt={'No escuro':'A academia ainda não sabe quantos alunos perde nem de onde eles vêm. As decisões de preço e de promoção acontecem sem esse número.',
+    var base=nova?'a mensalidade prevista':(t?'o ticket médio informado':'o valor do plano mais barato');
+    var txt={'Vai abrir academia':'Quem abre a academia já medindo tudo desde o primeiro aluno sabe de onde vêm as matrículas, quem está para sair e quanto entra no caixa. E não precisa trocar de sistema depois, com a casa cheia.','No escuro':'A academia ainda não sabe quantos alunos perde nem de onde eles vêm. As decisões de preço e de promoção acontecem sem esse número.',
       'Com sistema, sem resposta':'Existe um sistema, mas ele não responde por que o aluno sai nem avisa a tempo. O aluno some e a academia percebe tarde.',
       'Já mede, quer agir':'A academia acompanha os números. O próximo passo é agir antes de o aluno sair, com a lista de quem recuperar a cada dia.'}[p];
     var r=el('<div class="card res"><div class="muted">O perfil da academia</div><div class="big">'+p+'</div><p>'+txt+'</p>'+
-      (m?'<div class="muted" style="margin-top:16px">Cada aluno que vai embora deixa de pagar, em um ano, pelo menos</div><div class="money">'+brl(m*12)+'</div><p class="muted">Calculado com '+(t?'o ticket médio informado':'o valor do plano mais barato')+', de '+brl(m)+' por mês.</p>':'')+
-      '<p style="margin-top:16px"><b>Perguntas que o sistema da academia deveria responder:</b></p><ul><li>Quantos alunos saíram no mês passado e em quais meses mais saem.</li><li>De onde vem cada aluno e quanto tempo fica quem veio de promoção.</li><li>Quem está prestes a sair hoje, e por qual motivo.</li></ul>'+
+      (m?'<div class="muted" style="margin-top:16px">Cada aluno que vai embora deixa de pagar, em um ano, pelo menos</div><div class="money">'+brl(m*12)+'</div><p class="muted">Calculado com '+base+', de '+brl(m)+' por mês.</p>':'')+
+      '<p style="margin-top:16px"><b>'+(nova?'Perguntas que a academia deve conseguir responder desde o primeiro dia:':'Perguntas que o sistema da academia deveria responder:')+'</b></p><ul><li>Quantos alunos saíram no mês passado e em quais meses mais saem.</li><li>De onde vem cada aluno e quanto tempo fica quem veio de promoção.</li><li>Quem está prestes a sair hoje, e por qual motivo.</li></ul>'+
       '<p class="muted" style="margin-top:14px">Plano do Controle Fitness para este tamanho: <b>'+esc(cur.plano)+'</b>. Teste de 14 dias com a plataforma completa.</p></div>');
     app.appendChild(r);
     navBar('Continuar',function(){next()});
@@ -239,7 +264,10 @@
       if(cur.test){cur=null;toast('Teste encerrado. Nada foi salvo');mode='home';render();window.scrollTo(0,0);return}
       cur.fim=new Date().toISOString();
       if(!a.consent){delete a.whats;delete a.email} else if(!cur.consentEm){cur.consentEm=cur.fim}
-      Q.forEach(function(q){if(!vis(q))delete a[q.id]}); // ex.: mudou o cargo depois de responder o marketing
+      // Apaga respostas de perguntas que ficaram ocultas (ex.: mudou o cargo ou a situação depois de responder)
+      Q.forEach(function(q){if(vis(q))return; delete a[q.id];
+        (q.fields||[]).forEach(function(f){delete a[f.id]});
+        if(q.extra){delete a[q.extra.id]; if(q.extra.outro)delete a[q.extra.outro.id]}});
       delete cur.test;
       var i=all.findIndex(function(e){return e.id===cur.id}); if(i>-1)all[i]=cur; else all.push(cur);
       if(!persist())return; // memória cheia: mantém o rascunho e a tela
